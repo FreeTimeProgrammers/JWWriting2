@@ -8,5 +8,6 @@ public class TestActivity extends Thread{
     @Override
     public void run() {
         super.run();
+        System.out.println("Teste");
     }
 }
