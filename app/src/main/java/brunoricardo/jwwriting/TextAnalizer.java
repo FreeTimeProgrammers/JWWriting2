@@ -1,13 +1,16 @@
 package brunoricardo.jwwriting;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.graphics.Paint;
-import android.support.v4.app.NavUtils;
+import android.text.Layout;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,11 +37,14 @@ public class TextAnalizer extends Thread {
     private Context context;
     int NumeroLivro;
 
+    //Variavel textview para acrescentar texto
+    Element textoFinal;
+    Activity livrosAcrescentar;
 
-    public TextAnalizer(String texto, Context ctx,List<String> books){
+    public TextAnalizer(String texto, Context ctx, List<String> books, Activity livros){
         this.textoRecebido=texto;
         this.context=ctx;
-
+        this.livrosAcrescentar=livros;
         //Receber a arraylist com todos os livros para não estar sempre a reescrever quando a thread é lida
         this.bibleBooks=books;
     }
@@ -48,16 +54,14 @@ public class TextAnalizer extends Thread {
 
         //TODO: usar try???     verificar caso haja erros na thread, ver este link https://www.tutorialspoint.com/javaexamples/exception_thread.htm
         try {
-
-
             //Vai buscar o livro
-            livroRecebido=textoRecebido.substring(0,(textoRecebido.indexOf(" ")));
+            livroRecebido=textoRecebido.substring(0,(textoRecebido.indexOf(" "))).toLowerCase();
 
             //Vais buscar capitulo e versiculo
-             Capitulo=textoRecebido.substring(textoRecebido.indexOf(" "),textoRecebido.indexOf(":"));
-             Versiculo=textoRecebido.substring(textoRecebido.indexOf(":"));
+             Capitulo=textoRecebido.substring(textoRecebido.indexOf(" "),textoRecebido.indexOf(":")).trim();
+             Versiculo=textoRecebido.substring(textoRecebido.indexOf(":")+1);
             
-            
+            Log.d("Texto",livroRecebido+" "+Capitulo+" "+Versiculo);
             //TODO:Verificações se existe mais de um versiculo poderão não estar 100% corretas
             if (Versiculo.contains(",")){
                 //Faz split da string por , e adiciona isso na arraylist e de seguida remove as , da arraylist
@@ -115,26 +119,70 @@ public class TextAnalizer extends Thread {
                 BufferedReader leitorTexto = new BufferedReader(new InputStreamReader(streamComFicheiro));
                 String Conteudo="";
                 String textoDoFicheiro="";
+                Log.d("Texto","Versiculo é "+ Versiculo);
+                int VersiculoParaAcabar=Integer.parseInt(Versiculo)+1;
+                boolean PararCiclo=false;
+                boolean ContinuarALer=false;
                 //// TODO: É preciso corrigir o ciclo para aceitar mais de um versiculo 
-                //// TODO: Este ciclo esta a ler o ficheiro e adicionar numa string, mas depois é preciso trabalhar a string 
-                while ((Conteudo=leitorTexto.readLine())!=null){
+                //// TODO: Este ciclo esta a ler o ficheiro e adicionar numa string, mas depois é preciso trabalhar a string
 
-                    //Vai ver se o conteudo
+                int LinhasLida=0;
+                while ((Conteudo=leitorTexto.readLine())!=null && !PararCiclo){
+                    LinhasLida++;
+
+                    //Começar a ler o ficheiro
                     if (Conteudo.contains("<span id=\"chapter"+Capitulo+"_verse"+Versiculo+"\">")){
+                        Log.d("Texto","Encontrei o 1º vers");
+                        Log.d("Texto", "Conteudo da linha="+ Conteudo);
+                        if (Conteudo.contains("<span id=\"chapter"+Capitulo+"_verse"+VersiculoParaAcabar+"\">")){
+                            textoDoFicheiro+=Conteudo.substring(Conteudo.indexOf("<span id=\"chapter"+Capitulo+"_verse"+Versiculo+"\">"),Conteudo.indexOf("<span id=\"chapter"+Capitulo+"_verse"+VersiculoParaAcabar+"\">"));
+                            PararCiclo=true;
+                            Log.d("Texto","Encontrei o último vers na mesma linha, devo parar");
+                        }else{
+                            ContinuarALer=true;
+                            Log.d("Texto","O último vers não está mesma linha, devo continuar");
+                            textoDoFicheiro+=Conteudo.substring(Conteudo.indexOf("<span id=\"chapter"+Capitulo+"_verse"+Versiculo+"\">"));
+                        }
+                    }
+
+                    Log.d("Texto","Variaveis estão com os seguintes valores:" + ContinuarALer+" "+PararCiclo);
+                    //À procura do fim do texto
+
+                    if (!PararCiclo && Conteudo.contains("<span id=\"chapter"+Capitulo+"_verse"+VersiculoParaAcabar+"\">")){
+                        Log.d("Texto","O ciclo ainda não encontrou nada e Encontrei agora a linha do ultimo versiculo");
+                        textoDoFicheiro+=Conteudo.substring(0,Conteudo.indexOf("<span id=\"chapter"+Capitulo+"_verse"+VersiculoParaAcabar+"\">"));
+                        ContinuarALer=false;
+                        PararCiclo=true;
+
+                        //Continuar a ler enquanto não encontrou o fim do documento;
+                    }else if(ContinuarALer && !Conteudo.contains("<span id=\"chapter"+Capitulo+"_verse"+Versiculo+"\">")){
+                        Log.d("Texto","Os versiculos estão em linhas diferentes");
+                        //Log.d("Texto","Meio das linhas Linhalida="+LinhasLida+" Texto é "+Conteudo);
                         textoDoFicheiro+=Conteudo;
                     }
+
+
                 }
-                
+                Document doc = Jsoup.parseBodyFragment(textoDoFicheiro);
+                 textoFinal = doc.body();
+                Log.d("Texto",textoFinal.text());
 
+
+            }else {
+                Log.d("Texto","Livro não existe");
             }
-
-
-
+            /*TextView teste = (TextView) livrosAcrescentar.findViewById(R.id.textView5);
+            teste.setText(textoFinal.text());*/
+            
         } catch (IOException e) {
             e.printStackTrace();
+            Log.d("Erro",e.getMessage());
         }
 
 
+    }
+    public String GetText(){
+        return textoFinal.text();
     }
 
 }

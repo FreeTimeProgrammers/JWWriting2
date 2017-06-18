@@ -3,15 +3,12 @@ package brunoricardo.jwwriting;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.res.AssetManager;
-
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.AsyncTask;
+
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
-import android.text.Html;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
@@ -30,32 +27,27 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private List<String> bibleBooks = new ArrayList<>();
     public static final List<String> texts = new ArrayList<>();
-    public static int IndexInBibleBooks=0,ChapterNumber,VersicleNumber,FinalVersicleNumber=-1;
     public String BibleText;
     public String NameOfFileToWrite="";
-    public TextView textView;
+    public static TextView textView1;
     static final int COSTUM_DIALOG_ID=0;
     TextView textFolder;
     ListView dialog_ListView;
-    private List<String> VersicleDividedByComma = new ArrayList<>();
+    private List<Thread> t=new ArrayList<>();
+    MainActivity main;
     private List<String> fileList=new ArrayList<>();
     File curFolder,root;
     @Override
@@ -129,11 +121,11 @@ public class MainActivity extends AppCompatActivity
         bibleBooks.add("3joao");
         bibleBooks.add("jud");
         bibleBooks.add("apo");
-
+        main=this;
 
         final EditText editText = (EditText) findViewById(R.id.editText4);
         final TextView textView = (TextView) findViewById(R.id.textView5);
-
+        textView1=textView;
         editText.setText("");
         textView.setText("");
         textView.setMovementMethod(new ScrollingMovementMethod());
@@ -151,105 +143,33 @@ public class MainActivity extends AppCompatActivity
                 final String[] words = editText.getText().toString().replace("\n", " ").replace(".", " ").split(" ");
                 texts.clear();
                 textView.setText("");
+                int NumberOfThread=-1;
+                t.clear();
                 AssetManager assetManager = getApplicationContext().getAssets();
                 for ( int i = 0; i < words.length; i++) {
-                    if (words[i].contains(":")) {
-                        if ((i-1)>=0 && checkBook(words[i-1])){
-                            if (checkChapterAndVersicle(words[i])){
-                                try {
-                                    //This lines treat the filename
-                                    String Filename;
-                                    if (IndexInBibleBooks<5){
-                                        Filename="100106110"+(IndexInBibleBooks+5);
-                                    }else {
-                                        Filename="10010611"+(IndexInBibleBooks+5);
-                                    }
-                                    if (ChapterNumber>1){
-                                        Filename+="-split"+ChapterNumber+".xhtml";
-                                    }else {
-                                        Filename+=".xhtml";
-                                    }
-                                    //new DoThreading().execute(Filename);
-                                    //Open and read the file of the assets
-                                    InputStream stream = assetManager.open(Filename);
-                                    BufferedReader r = new BufferedReader(new InputStreamReader(stream));
-                                    String content;
-                                    String[] Text;
+                    Log.d("Texto","Words[i]="+words[i]);
+                    if (words[i].contains(":") && (words[i].indexOf(":")!=(words[i].length()-1)) &&
+                            (TryParseInt(words[i].substring(0,words[i].indexOf(":")))!=null) && (TryParseInt(words[i].substring(words[i].indexOf(":")+1)))!=null)  {
+                        Log.d("Texto","Encontrei um");
+                        NumberOfThread++;
+                        String texto=words[i-1]+" "+words[i];
+                        TextAnalizer text=new TextAnalizer(texto,getApplicationContext(),bibleBooks,main );
 
-                                    BibleText="";
-                                    //This code reads the xhtml and decompose the line where the versicle is, and put it in TESTE2
-                                    while ((content=r.readLine())!=null){
-                                        while (content.contains("<span id=\"chapter"+ChapterNumber+"_verse"+VersicleNumber+"\">")){
-
-                                            //Splits the text in detail
-                                            Text=content.split("<span id=\"chapter" + ChapterNumber + "_verse" + VersicleNumber + "\">");
-                                            Text=Text[1].split("<span id=\"chapter" + ChapterNumber + "_verse" + (VersicleNumber+1) + "\">");
-
-                                            //Gets the text without appearing  any HTML tag
-                                            Document teste1= Jsoup.parse((Text[0]));
-
-                                            //This puts the number of the text in bold
-                                            String TempTeste=teste1.body().text();
-                                            TempTeste=TempTeste.replace(VersicleNumber+""," <b>"+VersicleNumber+" </b> ");
-                                            BibleText+=TempTeste;
-                                            Log.d("Ok", "Final text is "+ BibleText);
-
-                                            //This if , is here in case the user uses "-" than the while i'll keep looking until it reaches the final versicle
-                                            if (VersicleNumber<FinalVersicleNumber){
-                                                Log.d("Ok","VersicleNumber<FinalVersicleNumber, "+ VersicleNumber+" "+FinalVersicleNumber);
-                                                VersicleNumber++;
-                                            }else if (!VersicleDividedByComma.isEmpty() && VersicleDividedByComma.size()>1)
-                                            {
-                                                VersicleDividedByComma.remove(0);
-                                                String teste="";
-                                                for (String e:VersicleDividedByComma){
-                                                    teste+=" "+e;
-                                                }
-                                                Log.d("Ok","In the arraylist the versicles are "+ teste);
-                                                    try {
-                                                        VersicleNumber=Integer.parseInt(VersicleDividedByComma.get(0));
-                                                    }catch ( NumberFormatException e){
-
-                                                    }
-                                            }else {
-                                                Log.d("Ok","Will break while");
-                                                break;
-                                            }
-
-                                        }
-                                    }
-                                } catch (IOException e) {
-                                    Log.d("Ok","ERROR "+ e.getMessage());
-                                }
-
-                                //Add the text and put first letter upper case
-                                /*texts.add("<br><b><font  color=\"#2878BB\">");
-                                if (!words[i-1].substring(0,1).matches("[a-zA-Z]")){
-                                    texts.add("\r\n"+words[i-1].substring(0,1)+ words[i-1].substring(1,2).toUpperCase()+words[i-1].substring(2) + " " + words[i]);
-                                }else {
-                                    texts.add("\r\n"+ words[i-1].substring(0,1).toUpperCase()+words[i-1].substring(1) + " " + words[i]+"");
-                                }
-                                texts.add("</font></b>");
-                                texts.add("\r\n"+BibleText+"<br>");*/
+                        //TODO: adicionar texto na Main thread na textview
+                        t.add(new Thread(text));
+                        t.get(NumberOfThread).start(); //=new Thread(text);
+                        //t[NumberOfThread].start();
+                        for (int j=0;j<=t.size()-1;j++){
+                            if (!t.get(j).isAlive()){
+                                textView.setText(text.GetText());
                             }
-
-
                         }
+                        //
                     }
-                }
 
-                //The for that adds bible texts in the textview
-                    if (texts.size() > 0) {
-                    String finalText = "";
-                    for (int i = 0; i < texts.size(); i++) {
-                        finalText += texts.get(i);
-                        if (i < texts.size() - 1) finalText += "\n";
-
-                    }
-                    textView.setText(Html.fromHtml(finalText));
 
                 }
-                    }
+            }
 
             @Override
             public void afterTextChanged(Editable s) {
@@ -404,136 +324,7 @@ public class MainActivity extends AppCompatActivity
 
 }
 
-private class DoThreading extends AsyncTask<String,Void,String> {
-   protected String doInBackground(String...Filename){
-       AssetManager assetManager = getApplicationContext().getAssets();
-       InputStream stream = null;
-       String teste="";
-       try {
-           stream = assetManager.open(Filename[0]);
-            Log.d("Teste",Filename[0]);
-       BufferedReader r = new BufferedReader(new InputStreamReader(stream));
-       String content;
-       String[] Text;
-       BibleText="";
-       //This code reads the xhtml and decompose the line where the versicle is, and put it in TESTE2
-       while ((content=r.readLine())!=null){
-           while (content.contains("<span id=\"chapter"+ChapterNumber+"_verse"+VersicleNumber+"\">")){
 
-               //Splits the text in detail
-               Text=content.split("<span id=\"chapter" + ChapterNumber + "_verse" + VersicleNumber + "\">");
-               Text=Text[1].split("<span id=\"chapter" + ChapterNumber + "_verse" + (VersicleNumber+1) + "\">");
-
-               //Gets the text without appearing  any HTML tag
-               Document teste1= Jsoup.parse((Text[0]));
-
-               //This puts the number of the text in bold
-               String TempTeste=teste1.body().text();
-               TempTeste=TempTeste.replace(VersicleNumber+""," <b>"+VersicleNumber+" </b> ");
-               BibleText+=TempTeste;
-               Log.d("Ok", "Final text is "+ BibleText);
-
-               //This if , is here in case the user uses "-" than the while i'll keep looking until it reaches the final versicle
-               if (VersicleNumber<FinalVersicleNumber){
-                   Log.d("Ok","VersicleNumber<FinalVersicleNumber, "+ VersicleNumber+" "+FinalVersicleNumber);
-                   VersicleNumber++;
-               }else if (!VersicleDividedByComma.isEmpty() && VersicleDividedByComma.size()>1)
-               {
-                   VersicleDividedByComma.remove(0);
-                    teste="";
-                   for (String e:VersicleDividedByComma){
-                       teste+=" "+e;
-                   }
-                   Log.d("Ok","In the arraylist the versicles are "+ teste);
-                   try {
-                       VersicleNumber=Integer.parseInt(VersicleDividedByComma.get(0));
-                   }catch ( NumberFormatException e){
-
-                   }
-               }else {
-                   Log.d("Ok","Will break while");
-                   break;
-               }
-
-           }
-       }
-       } catch (IOException e) {
-           Log.d("Teste"," Erro");
-           e.printStackTrace();
-       }
-       teste=BibleText;
-        Log.d("Teste","Final text is "+teste);
-       return teste;
-   }
-   protected void onPostExecute(String result){
-
-       Log.d("Teste",result);
-       textView.append(result);
-   }
-}
-    private boolean checkChapterAndVersicle(String c){
-        //TODO correct algorithm that convert string in integers, because it is bugging the code
-        Log.d("Ok", c);
-        FinalVersicleNumber=-1;
-        String[] Numbers =c.split(":");
-        boolean IsItRight=true;
-        Log.d("Ok","Splitted numbers "+Numbers.length);
-        if (Numbers.length<=1){
-            IsItRight=false;
-        }else {
-            try {
-                if (Numbers[1].contains(",")){
-                    if (!VersicleDividedByComma.isEmpty()){
-                        Log.d("Ok","Im clearing arraylist");
-                        VersicleDividedByComma= new ArrayList<>();
-                    }
-                    VersicleDividedByComma.addAll(Arrays.asList(Numbers[1].split(",")));
-                    //VersicleDividedByComma=Arrays.asList(Numbers[1].split(","));
-                    for (String e:VersicleDividedByComma){
-                        if (e.contains(",")){
-                            e.replace(",","");
-                        }
-                    }
-                    ChapterNumber=Integer.parseInt(Numbers[0]);
-                    VersicleNumber=Integer.parseInt(VersicleDividedByComma.get(0));
-                }else if (Numbers[1].contains("-")){
-                    int tempIndex=Numbers[1].indexOf("-");
-                    FinalVersicleNumber=Integer.parseInt(Numbers[1].substring(tempIndex+1));
-                    ChapterNumber=Integer.parseInt(Numbers[0]);
-                    VersicleNumber=Integer.parseInt(Numbers[1].substring(0,tempIndex));
-                }else {
-                    ChapterNumber=Integer.parseInt(Numbers[0]);
-                    VersicleNumber=Integer.parseInt(Numbers[1]);
-                }
-                Log.d("Ok",ChapterNumber+" "+VersicleNumber+" "+FinalVersicleNumber);
-            } catch (NumberFormatException e){
-                Log.d("Ok","Formato inválido");
-                IsItRight=false;
-            }
-        }
-        return IsItRight;
-    }
-    private boolean checkBook (String c) {
-        //for (String c : texts) {
-        boolean FoundValue=false;
-        c = c.toLowerCase().replace("ê", "e");
-        c =  c.toLowerCase().replace("í", "i");
-        c =  c.toLowerCase().replace("ã", "a");
-        c =  c.toLowerCase().replace("ú", "u");
-        c =  c.toLowerCase().replace("é", "e");
-        c =  c.toLowerCase().replace("ó", "o");
-        c =  c.toLowerCase().replace("ô", "o");
-        c =  c.toLowerCase().replace("á", "a");
-        c =   c.toLowerCase().replace("ç", "c");
-        for (String cap : bibleBooks) {
-            if (c.contains(cap)) {
-                FoundValue=true;
-                IndexInBibleBooks=bibleBooks.indexOf(cap);
-                Log.d("Ok", "" + cap);
-            }
-        }
-        return FoundValue;
-    }
     private void writeToFile() {
         try {
             String filepath =Environment.getExternalStorageDirectory().getPath()+"/jwwriting/"+NameOfFileToWrite.trim()+".docx";
@@ -586,5 +377,16 @@ private class DoThreading extends AsyncTask<String,Void,String> {
             Log.e("login activity", "Can not read file: " + e.toString());
             Toast.makeText(getApplicationContext(),"Erro ao abrir ficheiro",Toast.LENGTH_LONG).show();
         }
+    }
+
+    public static Integer TryParseInt(String someText) {
+        try {
+            return Integer.parseInt(someText);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+    public void Test(){
+
     }
 }
