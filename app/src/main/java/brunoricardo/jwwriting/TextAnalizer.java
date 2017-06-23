@@ -1,8 +1,10 @@
 package brunoricardo.jwwriting;
 
 import android.app.Activity;
+import android.app.Notification;
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.os.Message;
 import android.text.Layout;
 import android.util.Log;
 import android.view.View;
@@ -39,9 +41,9 @@ public class TextAnalizer extends Thread {
 
     //Variavel textview para acrescentar texto
     Element textoFinal;
-    Activity livrosAcrescentar;
+    MainActivity livrosAcrescentar;
 
-    public TextAnalizer(String texto, Context ctx, List<String> books, Activity livros){
+    public TextAnalizer(String texto, Context ctx, List<String> books, MainActivity livros){
         this.textoRecebido=texto;
         this.context=ctx;
         this.livrosAcrescentar=livros;
@@ -125,7 +127,6 @@ public class TextAnalizer extends Thread {
                 boolean ContinuarALer=false;
                 //// TODO: É preciso corrigir o ciclo para aceitar mais de um versiculo 
                 //// TODO: Este ciclo esta a ler o ficheiro e adicionar numa string, mas depois é preciso trabalhar a string
-
                 int LinhasLida=0;
                 while ((Conteudo=leitorTexto.readLine())!=null && !PararCiclo){
                     LinhasLida++;
@@ -145,7 +146,6 @@ public class TextAnalizer extends Thread {
                         }
                     }
 
-                    Log.d("Texto","Variaveis estão com os seguintes valores:" + ContinuarALer+" "+PararCiclo);
                     //À procura do fim do texto
 
                     if (!PararCiclo && Conteudo.contains("<span id=\"chapter"+Capitulo+"_verse"+VersiculoParaAcabar+"\">")){
@@ -163,9 +163,18 @@ public class TextAnalizer extends Thread {
 
 
                 }
+
+                //Caso o versiculo seja o ultimo remover a parte que contem as notas
+                if (textoDoFicheiro.contains("^")){
+                    textoDoFicheiro=textoDoFicheiro.substring(0,textoDoFicheiro.indexOf("^"));
+                }
                 Document doc = Jsoup.parseBodyFragment(textoDoFicheiro);
                  textoFinal = doc.body();
                 Log.d("Texto",textoFinal.text());
+                Message msg=Message.obtain();
+                msg.obj=textoFinal.text();
+                livrosAcrescentar.handler.sendMessage(msg);
+                //livrosAcrescentar.Test(textoFinal.text());
 
 
             }else {

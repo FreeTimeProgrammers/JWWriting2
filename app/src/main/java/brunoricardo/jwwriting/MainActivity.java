@@ -7,6 +7,8 @@ import android.graphics.Color;
 
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.InputType;
@@ -46,7 +48,7 @@ public class MainActivity extends AppCompatActivity
     static final int COSTUM_DIALOG_ID=0;
     TextView textFolder;
     ListView dialog_ListView;
-    private List<Thread> t=new ArrayList<>();
+    Thread t=new Thread();
     MainActivity main;
     private List<String> fileList=new ArrayList<>();
     File curFolder,root;
@@ -144,7 +146,6 @@ public class MainActivity extends AppCompatActivity
                 texts.clear();
                 textView.setText("");
                 int NumberOfThread=-1;
-                t.clear();
                 AssetManager assetManager = getApplicationContext().getAssets();
                 for ( int i = 0; i < words.length; i++) {
                     Log.d("Texto","Words[i]="+words[i]);
@@ -153,18 +154,12 @@ public class MainActivity extends AppCompatActivity
                         Log.d("Texto","Encontrei um");
                         NumberOfThread++;
                         String texto=words[i-1]+" "+words[i];
+                        Log.d("Texto", "Texto é "+texto);
                         TextAnalizer text=new TextAnalizer(texto,getApplicationContext(),bibleBooks,main );
-
                         //TODO: adicionar texto na Main thread na textview
-                        t.add(new Thread(text));
-                        t.get(NumberOfThread).start(); //=new Thread(text);
-                        //t[NumberOfThread].start();
-                        for (int j=0;j<=t.size()-1;j++){
-                            if (!t.get(j).isAlive()){
-                                textView.setText(text.GetText());
-                            }
-                        }
-                        //
+                        t=new Thread(text);
+                        t.start(); //=new Thread(text);
+
                     }
 
 
@@ -386,7 +381,14 @@ public class MainActivity extends AppCompatActivity
             return null;
         }
     }
-    public void Test(){
-
+    public void Test(String text){
+        textView1.setText(text);
     }
+    public Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message text) {
+            String message=(String)text.obj;
+            textView1.append(message);
+        }
+    };
 }
