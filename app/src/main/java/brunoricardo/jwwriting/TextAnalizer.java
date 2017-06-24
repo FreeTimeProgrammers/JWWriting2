@@ -1,15 +1,9 @@
 package brunoricardo.jwwriting;
 
-import android.app.Activity;
-import android.app.Notification;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Message;
-import android.text.Layout;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -161,9 +155,7 @@ public class TextAnalizer extends Thread {
                         textoDoFicheiro+=Conteudo;
                     }
 
-
                 }
-
                 //Caso o versiculo seja o ultimo remover a parte que contem as notas
                 if (textoDoFicheiro.contains("^")){
                     textoDoFicheiro=textoDoFicheiro.substring(0,textoDoFicheiro.indexOf("^"));
@@ -172,7 +164,7 @@ public class TextAnalizer extends Thread {
                  textoFinal = doc.body();
                 Log.d("Texto",textoFinal.text());
                 Message msg=Message.obtain();
-                msg.obj=textoFinal.text();
+                msg.obj="<br><b><span style='color:#2878BB;'>"+livroRecebido+" "+ Capitulo+":"+Versiculo+"</span></b><br>"+textoFinal.text();
                 livrosAcrescentar.handler.sendMessage(msg);
                 //livrosAcrescentar.Test(textoFinal.text());
 
@@ -188,10 +180,6 @@ public class TextAnalizer extends Thread {
             Log.d("Erro",e.getMessage());
         }
 
-
-    }
-    public String GetText(){
-        return textoFinal.text();
     }
 
 }

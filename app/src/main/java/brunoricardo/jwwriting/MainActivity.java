@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
+import android.text.Html;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
@@ -381,14 +382,20 @@ public class MainActivity extends AppCompatActivity
             return null;
         }
     }
-    public void Test(String text){
-        textView1.setText(text);
-    }
     public Handler handler = new Handler() {
         @Override
         public void handleMessage(Message text) {
             String message=(String)text.obj;
-            textView1.append(message);
+
+
+            //TODO: sincronizar o append para isso talvez so acrescentar aqueles que mudaram
+            //Reagir de maneiras diferentes visto que depois do Android 7
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                textView1.append(Html.fromHtml(message,Html.FROM_HTML_MODE_LEGACY));
+            } else {
+                textView1.append(Html.fromHtml(message));
+            }
+            //textView1.append(message);
         }
     };
 }
