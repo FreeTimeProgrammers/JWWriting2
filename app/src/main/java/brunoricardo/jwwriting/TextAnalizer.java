@@ -15,34 +15,31 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by bruno on 15/06/2017.
- */
-
 public class TextAnalizer extends Thread {
 
     //Variaveis contem texto recebido e livro,cap. e vers.
     String textoRecebido,livroRecebido,Capitulo,Versiculo;
-
     private List<String> TodosOsVersiculos=new ArrayList<>();
+
     //Variavel contem todos os livros
     private List<String> bibleBooks = new ArrayList<>();
-
 
     //Variaveis para ler o ficheiro xhtml
     private Context context;
     int NumeroLivro;
+    int TextoNumero;
 
     //Variavel textview para acrescentar texto
     Element textoFinal;
     MainActivity livrosAcrescentar;
 
-    public TextAnalizer(String texto, Context ctx, List<String> books, MainActivity livros){
+    public TextAnalizer(String texto, Context ctx, List<String> books, MainActivity livros,int NumTextosEncontrados){
         this.textoRecebido=texto;
         this.context=ctx;
         this.livrosAcrescentar=livros;
         //Receber a arraylist com todos os livros para não estar sempre a reescrever quando a thread é lida
         this.bibleBooks=books;
+        this.TextoNumero=NumTextosEncontrados;
     }
 
     @Override
@@ -89,11 +86,7 @@ public class TextAnalizer extends Thread {
             }
 
             if (livroExiste) {
-
-
                 AssetManager assetManager = context.getAssets();
-
-
             //Ficar com o nome correto do arquivo
                 String nomeArquivo;
                 if (NumeroLivro < 5) {
@@ -106,8 +99,6 @@ public class TextAnalizer extends Thread {
                 } else {
                     nomeArquivo += ".xhtml";
                 }
-
-
 
                 //Este ciclo vai se encarregar de entregar o texto correto para depois se decompor
                 InputStream streamComFicheiro  = assetManager.open(nomeArquivo);
@@ -164,17 +155,14 @@ public class TextAnalizer extends Thread {
                  textoFinal = doc.body();
                 Log.d("Texto",textoFinal.text());
                 Message msg=Message.obtain();
-                msg.obj="<br><b><span style='color:#2878BB;'>"+livroRecebido+" "+ Capitulo+":"+Versiculo+"</span></b><br>"+textoFinal.text();
+                //TODO: corrigir o codigo de cor
+                msg.obj="<br><b><p style='color:#2878BB;'>"+livroRecebido+" "+ Capitulo+":"+Versiculo+"</p></b><br>"+textoFinal.text();
+                msg.arg1=TextoNumero;
+                Log.d("Handle","Esta é a thread "+ TextoNumero);
                 livrosAcrescentar.handler.sendMessage(msg);
-                //livrosAcrescentar.Test(textoFinal.text());
-
-
             }else {
                 Log.d("Texto","Livro não existe");
             }
-            /*TextView teste = (TextView) livrosAcrescentar.findViewById(R.id.textView5);
-            teste.setText(textoFinal.text());*/
-            
         } catch (IOException e) {
             e.printStackTrace();
             Log.d("Erro",e.getMessage());

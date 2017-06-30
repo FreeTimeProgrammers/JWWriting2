@@ -37,7 +37,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -47,17 +50,21 @@ public class MainActivity extends AppCompatActivity
     public String NameOfFileToWrite="";
     public static TextView textView1;
     static final int COSTUM_DIALOG_ID=0;
+    long TimeStart,TimeTake;
+    Date date=new Date();
     TextView textFolder;
     ListView dialog_ListView;
-    Thread t=new Thread();
+    int numeroDeTextosEncontrados=0;
     MainActivity main;
     private List<String> fileList=new ArrayList<>();
+    private String[] textosRecebidos=new String[1];
+    private List<Thread> t =new ArrayList<>();
     File curFolder,root;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        //OLA MACGYVER
         bibleBooks.add("gen");
         bibleBooks.add("exo");
         bibleBooks.add("lev");
@@ -72,56 +79,56 @@ public class MainActivity extends AppCompatActivity
         bibleBooks.add("2rei");
         bibleBooks.add("1cro");
         bibleBooks.add("2cro");
-        bibleBooks.add("esdr");
+        bibleBooks.add("esd");
         bibleBooks.add("nee");
-        bibleBooks.add("ester");
+        bibleBooks.add("est");
         bibleBooks.add("jo");
         bibleBooks.add("salm");
         bibleBooks.add("prov");
         bibleBooks.add("ecle");
-        bibleBooks.add("cantico");
-        bibleBooks.add("isaias");
-        bibleBooks.add("jeremi");
-        bibleBooks.add("lament");
-        bibleBooks.add("ezeq");
-        bibleBooks.add("dani");
-        bibleBooks.add("osei");
-        bibleBooks.add("joel");
-        bibleBooks.add("amos");
+        bibleBooks.add("cant");
+        bibleBooks.add("isa");
+        bibleBooks.add("jer");
+        bibleBooks.add("lam");
+        bibleBooks.add("eze");
+        bibleBooks.add("dan");
+        bibleBooks.add("ose");
+        bibleBooks.add("joe");
+        bibleBooks.add("amo");
         bibleBooks.add("obad");
-        bibleBooks.add("jonas");
-        bibleBooks.add("miquei");
+        bibleBooks.add("jon");
+        bibleBooks.add("miq");
         bibleBooks.add("naum");
         bibleBooks.add("haba");
         bibleBooks.add("sofo");
         bibleBooks.add("ag");
         bibleBooks.add("zaca");
-        bibleBooks.add("mala");
-        bibleBooks.add("mateus");
-        bibleBooks.add("marcos");
-        bibleBooks.add("lucas");
-        bibleBooks.add("joao");
-        bibleBooks.add("atos");
-        bibleBooks.add("roman");
-        bibleBooks.add("1corin");
-        bibleBooks.add("2corin");
-        bibleBooks.add("gala");
+        bibleBooks.add("mal");
+        bibleBooks.add("mat");
+        bibleBooks.add("mar");
+        bibleBooks.add("luc");
+        bibleBooks.add("joa");
+        bibleBooks.add("ato");
+        bibleBooks.add("rom");
+        bibleBooks.add("1cor");
+        bibleBooks.add("2cor");
+        bibleBooks.add("gal");
         bibleBooks.add("efes");
-        bibleBooks.add("filip");
-        bibleBooks.add("colos");
+        bibleBooks.add("fili");
+        bibleBooks.add("col");
         bibleBooks.add("1tes");
         bibleBooks.add("2tes");
         bibleBooks.add("1ti");
         bibleBooks.add("2ti");
-        bibleBooks.add("tito");
-        bibleBooks.add("filem");
-        bibleBooks.add("hebre");
+        bibleBooks.add("tit");
+        bibleBooks.add("file");
+        bibleBooks.add("heb");
         bibleBooks.add("tia");
-        bibleBooks.add("1ped");
-        bibleBooks.add("2ped");
-        bibleBooks.add("1joao");
-        bibleBooks.add("2joao");
-        bibleBooks.add("3joao");
+        bibleBooks.add("1pe");
+        bibleBooks.add("2pe");
+        bibleBooks.add("1joa");
+        bibleBooks.add("2joa");
+        bibleBooks.add("3joa");
         bibleBooks.add("jud");
         bibleBooks.add("apo");
         main=this;
@@ -132,7 +139,6 @@ public class MainActivity extends AppCompatActivity
         editText.setText("");
         textView.setText("");
         textView.setMovementMethod(new ScrollingMovementMethod());
-        //TODO put thread to not push too much of the main thread
 
         editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -146,20 +152,28 @@ public class MainActivity extends AppCompatActivity
                 final String[] words = editText.getText().toString().replace("\n", " ").replace(".", " ").split(" ");
                 texts.clear();
                 textView.setText("");
+                t.clear();
+                textosRecebidos=new String[1];
                 int NumberOfThread=-1;
                 AssetManager assetManager = getApplicationContext().getAssets();
+                numeroDeTextosEncontrados=-1;
+                TimeStart = date.getTime();
                 for ( int i = 0; i < words.length; i++) {
-                    Log.d("Texto","Words[i]="+words[i]);
                     if (words[i].contains(":") && (words[i].indexOf(":")!=(words[i].length()-1)) &&
                             (TryParseInt(words[i].substring(0,words[i].indexOf(":")))!=null) && (TryParseInt(words[i].substring(words[i].indexOf(":")+1)))!=null)  {
                         Log.d("Texto","Encontrei um");
-                        NumberOfThread++;
                         String texto=words[i-1]+" "+words[i];
-                        Log.d("Texto", "Texto é "+texto);
-                        TextAnalizer text=new TextAnalizer(texto,getApplicationContext(),bibleBooks,main );
-                        //TODO: adicionar texto na Main thread na textview
-                        t=new Thread(text);
-                        t.start(); //=new Thread(text);
+
+                        //TODO: suspostamente este codigo so vai mostrar os textos que ainda nao existem, mas corrigir possiveis erros
+
+                            Log.d("Texto", "Texto é " + texto);
+                            numeroDeTextosEncontrados++;
+                            TextAnalizer text = new TextAnalizer(texto, getApplicationContext(), bibleBooks, main,numeroDeTextosEncontrados);
+
+                            t.add(new Thread(text));
+                            t.get(t.size()-1).start();
+                            textosRecebidos = Arrays.copyOf(textosRecebidos, numeroDeTextosEncontrados+1);
+                            //t.start(); //=new Thread(text);
 
                     }
 
@@ -386,16 +400,44 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void handleMessage(Message text) {
             String message=(String)text.obj;
-
-
+            int numeroDoTexto=text.arg1;
+            textosRecebidos[numeroDoTexto]=message;
             //TODO: sincronizar o append para isso talvez so acrescentar aqueles que mudaram
             //Reagir de maneiras diferentes visto que depois do Android 7
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            /*if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 textView1.append(Html.fromHtml(message,Html.FROM_HTML_MODE_LEGACY));
             } else {
                 textView1.append(Html.fromHtml(message));
-            }
-            //textView1.append(message);
+            }*/
+            CheckThreads();
         }
     };
+    void CheckThreads(){
+        boolean Acabaram=true;
+        for (int i=0;i<=t.size()-1;i++){
+            if (t.get(i).isAlive() || textosRecebidos[i]==null){
+                Acabaram=false;
+                Log.d("Texto","Eu estou viva");
+            }
+        }
+        if (Acabaram){
+            Log.d("Texto","Tenho "+textosRecebidos.length+ " elementos");
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                for (String texto:textosRecebidos){
+                    Log.d("Texto","Neste momento tenho o texto "+texto);
+                    textView1.append(Html.fromHtml(texto,Html.FROM_HTML_MODE_LEGACY));
+                }
+            } else {
+                for (String texto:textosRecebidos){
+                    Log.d("Texto","Neste momento tenho o texto "+texto);
+                  textView1.append(Html.fromHtml(texto));
+                }
+            }
+            date=new Date();
+            TimeTake=date.getTime()-TimeStart;
+            //TimeTake = System.nanoTime() - TimeStart;
+            Log.d("Texto","Demorei "+TimeTake+ " Atualmente "+ date.getTime());
+
+        }
+    }
 }
