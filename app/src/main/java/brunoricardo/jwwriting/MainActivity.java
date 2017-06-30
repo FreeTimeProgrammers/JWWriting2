@@ -65,6 +65,8 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //TODO : corrigir livros com apenas 1 capitulo
+        //TODO : ao dar erro/sair dar backup do texto com data e milis
+        //TODO : dar save ao ficheiro atual
         bibleBooks.add("gen");
         bibleBooks.add("exo");
         bibleBooks.add("lev");
