@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //TODO : corrigir judas com apenas 1 capitulo
+        //TODO : corrigir livros com apenas 1 capitulo
         bibleBooks.add("gen");
         bibleBooks.add("exo");
         bibleBooks.add("lev");
