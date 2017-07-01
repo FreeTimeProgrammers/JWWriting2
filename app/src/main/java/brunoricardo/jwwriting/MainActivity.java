@@ -45,8 +45,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private List<String> bibleBooks = new ArrayList<>();
-    public static final List<String> texts = new ArrayList<>();
-    public String BibleText;
     public String NameOfFileToWrite="";
     public static TextView textView1;
     static final int COSTUM_DIALOG_ID=0;
@@ -152,7 +150,6 @@ public class MainActivity extends AppCompatActivity
             public void onTextChanged(CharSequence s, int start, int before, int count) {
 
                 final String[] words = editText.getText().toString().replace("\n", " ").replace(".", " ").split(" ");
-                texts.clear();
                 textView.setText("");
                 t.clear();
                 textosRecebidos=new String[1];
@@ -371,14 +368,13 @@ public class MainActivity extends AppCompatActivity
             StringBuilder stringBuilder = new StringBuilder();
             Log.d("Ok","Ficheiro aberto");
             while ((teste=in.readLine())!=null){
-                    stringBuilder.append(teste);
+                    stringBuilder.append(teste + "\n");
             }
             final EditText editText= (EditText) findViewById(R.id.editText4);
             editText.setText("");
             editText.setText(stringBuilder.toString());
             final TextView textView= (TextView) findViewById(R.id.textView5);
             textView.setText("");
-            texts.clear();
             Toast.makeText(getApplicationContext(),"Ficheiro aberto",Toast.LENGTH_LONG).show();
         }
         catch (FileNotFoundException e) {
