@@ -2,6 +2,7 @@ package brunoricardo.jwwriting;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Color;
 
@@ -37,15 +38,15 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private List<String> bibleBooks = new ArrayList<>();
+    private int autosaveCount = 0;
     public String NameOfFileToWrite="";
+    private String lastPathOfFileSaved = "";
     public static TextView textView1;
     static final int COSTUM_DIALOG_ID=0;
     long TimeStart,TimeTake;
@@ -62,9 +63,27 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        main=this;
+
         //TODO : corrigir livros com apenas 1 capitulo
         //TODO : ao dar erro/sair dar backup do texto com data e milis
         //TODO : dar save ao ficheiro atual
+
+        loadBibleBooks();
+        setUpInterface(); // mais clean (mas é opcional, podes meter como estava)
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void loadBibleBooks() {
+        // assim podes esconder o código :)
         bibleBooks.add("gen");
         bibleBooks.add("exo");
         bibleBooks.add("lev");
@@ -131,8 +150,9 @@ public class MainActivity extends AppCompatActivity
         bibleBooks.add("3joa");
         bibleBooks.add("jud");
         bibleBooks.add("apo");
-        main=this;
+    }
 
+    private void setUpInterface() {
         final EditText editText = (EditText) findViewById(R.id.editText4);
         final TextView textView = (TextView) findViewById(R.id.textView5);
         textView1=textView;
@@ -142,12 +162,27 @@ public class MainActivity extends AppCompatActivity
 
         editText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (lastPathOfFileSaved != "") {
+                    autosaveCount++;
+                    if (autosaveCount >= 500) {
+                        try {
+                            String textoParaGravar = ((EditText) findViewById(R.id.editText4)).getText().toString();
+                            FileOutputStream fOut = new FileOutputStream(lastPathOfFileSaved, false);
+                            OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+                            myOutWriter.append(textoParaGravar);
+                            myOutWriter.close();
+                            fOut.flush();
+                            fOut.close();
+                            autosaveCount = 0;
+                        } catch (IOException e) {
+                            Toast.makeText(getApplicationContext(), "Erro ao gravar automaticamente! Por favor tente gravar manualmente.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
 
                 final String[] words = editText.getText().toString().replace("\n", " ").replace(".", " ").split(" ");
                 textView.setText("");
@@ -165,35 +200,21 @@ public class MainActivity extends AppCompatActivity
 
                         //TODO: suspostamente este codigo so vai mostrar os textos que ainda nao existem, mas corrigir possiveis erros
 
-                            Log.d("Texto", "Texto é " + texto);
-                            numeroDeTextosEncontrados++;
-                            TextAnalizer text = new TextAnalizer(texto, getApplicationContext(), bibleBooks, main,numeroDeTextosEncontrados);
+                        Log.d("Texto", "Texto é " + texto);
+                        numeroDeTextosEncontrados++;
+                        TextAnalizer text = new TextAnalizer(texto, getApplicationContext(), bibleBooks, main,numeroDeTextosEncontrados);
 
-                            t.add(new Thread(text));
-                            t.get(t.size()-1).start();
-                            textosRecebidos = Arrays.copyOf(textosRecebidos, numeroDeTextosEncontrados+1);
-                            //t.start(); //=new Thread(text);
-
+                        t.add(new Thread(text));
+                        t.get(t.size()-1).start();
+                        textosRecebidos = Arrays.copyOf(textosRecebidos, numeroDeTextosEncontrados+1);
+                        //t.start(); //=new Thread(text);
                     }
-
-
                 }
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-
-            }
+            public void afterTextChanged(Editable s) {}
         });
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
@@ -234,17 +255,52 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            File folder = new File(Environment.getExternalStorageDirectory().getPath()+"/jwwriting");
-            Log.d("Ok","Folder in "+(Environment.getExternalStorageDirectory().getPath()+"/jwwriting") );
-            if (!folder.exists()){
-                if (folder.mkdir()){
-                    Log.d("Ok","Folder created ");
+        if (id == R.id.new_file) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Vai perder TODO O TEXTO que não foi gravado. Continuar mesmo assim?");
+            builder.setIcon(R.drawable.warning);
+            builder.setPositiveButton("sim", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent intent = getIntent();
+                    finish();
+                    startActivity(intent);
                 }
-            }
-            root=new File(Environment.getExternalStorageDirectory().getPath()+"/jwwriting");
-            curFolder=root;
-            showDialog(COSTUM_DIALOG_ID);
+            });
+            builder.setNegativeButton("NÃO", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            builder.show();
+        }
+        else if (id == R.id.nav_camera) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Vai perder TODO O TEXTO que não foi gravado. Continuar mesmo assim?");
+            builder.setIcon(R.drawable.warning);
+            builder.setPositiveButton("sim", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    File folder = new File(Environment.getExternalStorageDirectory().getPath()+"/jwwriting");
+                    Log.d("Ok","Folder in "+(Environment.getExternalStorageDirectory().getPath()+"/jwwriting") );
+                    if (!folder.exists()){
+                        if (folder.mkdir()){
+                            Log.d("Ok","Folder created ");
+                        }
+                    }
+                    root=new File(Environment.getExternalStorageDirectory().getPath()+"/jwwriting");
+                    curFolder=root;
+                    showDialog(COSTUM_DIALOG_ID);
+                }
+            });
+            builder.setNegativeButton("NÃO", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            builder.show();
 
         } else if (id == R.id.nav_gallery) {
 
@@ -278,6 +334,25 @@ public class MainActivity extends AppCompatActivity
             builder.show();
 
         }
+        else if (id == R.id.quick_save) {
+            if (lastPathOfFileSaved != "") {
+                try {
+                    String textoParaGravar = ((EditText) findViewById(R.id.editText4)).getText().toString();
+                    FileOutputStream fOut = new FileOutputStream(lastPathOfFileSaved, false);
+                    OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+                    myOutWriter.append(textoParaGravar);
+                    myOutWriter.close();
+                    fOut.flush();
+                    fOut.close();
+                    Toast.makeText(getApplicationContext(), "Ficheiro guardado", Toast.LENGTH_LONG).show();
+                } catch (IOException e) {
+                    Toast.makeText(getApplicationContext(), "Erro a gravar! Por favor tente novamente.", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(getApplicationContext(), "Por favor, grave primeiro o ficheiro.", Toast.LENGTH_SHORT).show();
+            }
+        }
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -351,6 +426,10 @@ public class MainActivity extends AppCompatActivity
                 fOut.flush();
                 fOut.close();
                 Toast.makeText(getApplicationContext(),"Ficheiro guardado",Toast.LENGTH_LONG).show();
+
+                lastPathOfFileSaved = filepath;
+                NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+                navigationView.getMenu().findItem(R.id.quick_save).setEnabled(true);
             }else {
                 Toast.makeText(getApplicationContext(),"Ficheiro já existe",Toast.LENGTH_SHORT).show();
             }
@@ -372,10 +451,14 @@ public class MainActivity extends AppCompatActivity
             }
             final EditText editText= (EditText) findViewById(R.id.editText4);
             editText.setText("");
-            editText.setText(stringBuilder.toString());
+            editText.append(stringBuilder.toString()); // usar append em vez de setText para mover o cursor para o final do texto depois de ler o ficheiro
             final TextView textView= (TextView) findViewById(R.id.textView5);
             textView.setText("");
             Toast.makeText(getApplicationContext(),"Ficheiro aberto",Toast.LENGTH_LONG).show();
+
+            lastPathOfFileSaved = filename;
+            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+            navigationView.getMenu().findItem(R.id.quick_save).setEnabled(true);
         }
         catch (FileNotFoundException e) {
             Log.e("login activity", "File not found: " + e.toString());
