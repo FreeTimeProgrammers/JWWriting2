@@ -64,10 +64,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         main=this;
 
         //TODO : corrigir livros com apenas 1 capitulo, neste caso jud,123joa
-        //TODO : ao dar erro/sair dar backup do texto com data e milis, ver este exemplo
+        //TODO : ao dar erro/sair dar backup do texto com data e milis, ver seguintes links:
         //https://stackoverflow.com/questions/7370981/how-to-catch-my-applications-crash-report
-        //Library que trata destes erros https://github.com/Ereza/CustomActivityOnCrash
-        //Ver este forum https://stackoverflow.com/questions/27829955/android-handle-application-crash-and-start-a-particular-activity
+        //https://github.com/Ereza/CustomActivityOnCrash
+        //https://stackoverflow.com/questions/27829955/android-handle-application-crash-and-start-a-particular-activity
+        //https://stackoverflow.com/questions/22978245/how-to-prevent-android-app-from-crashing-due-to-exception-in-background-thread
+        //https://stackoverflow.com/questions/19897628/need-to-handle-uncaught-exception-and-send-log-file
+        
+        //TODO : pedir permissão para escrever e ler os arquivos do cartão, caso não seja aceite não poderá se escrever no cartão
+        //https://developer.android.com/training/permissions/requesting.html
+        //https://stackoverflow.com/questions/33162152/storage-permission-error-in-marshmallow
+        //Tenho uma function que vi no stackoverflow não verifiquei se funciona
+        
         loadBibleBooks();
         setUpInterface(); // mais clean (mas é opcional, podes meter como estava)
 
@@ -509,4 +517,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.d("Texto","Demorei "+TimeTake+ " Atualmente "+ date.getTime());
         }
     }
+    
+    //TODO :verificar se metodo está a funcionar corretamente
+    public  boolean isStoragePermissionGranted() {
+    if (Build.VERSION.SDK_INT >= 23) {
+        if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+            Log.v(TAG,"Permission is granted");
+            return true;
+        } else {
+
+            Log.v(TAG,"Permission is revoked");
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            return false;
+        }
+    }
+    else { //permission is automatically granted on sdk<23 upon installation
+        Log.v(TAG,"Permission is granted");
+        return true;
+    }
+}
 }
