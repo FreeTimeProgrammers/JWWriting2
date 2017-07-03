@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //TODO : ao dar erro/sair dar backup do texto com data e milis, ver este exemplo
         //https://stackoverflow.com/questions/7370981/how-to-catch-my-applications-crash-report
         //Library que trata destes erros https://github.com/Ereza/CustomActivityOnCrash
+        //Ver este forum https://stackoverflow.com/questions/27829955/android-handle-application-crash-and-start-a-particular-activity
         loadBibleBooks();
         setUpInterface(); // mais clean (mas é opcional, podes meter como estava)
 
