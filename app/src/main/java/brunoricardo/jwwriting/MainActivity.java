@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //TODO : corrigir livros com apenas 1 capitulo, neste caso jud,123joa
         //TODO : ao dar erro/sair dar backup do texto com data e milis, ver este exemplo
         //https://stackoverflow.com/questions/7370981/how-to-catch-my-applications-crash-report
-
+        //Library que trata destes erros https://github.com/Ereza/CustomActivityOnCrash
         loadBibleBooks();
         setUpInterface(); // mais clean (mas é opcional, podes meter como estava)
 
