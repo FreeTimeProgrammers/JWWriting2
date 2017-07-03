@@ -44,16 +44,14 @@ import java.util.Date;
 import java.util.List;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private List<String> bibleBooks = new ArrayList<>();
-    private int autosaveCount = 0;
-    public String NameOfFileToWrite="";
-    private String lastPathOfFileSaved = "";
+    private int autosaveCount = 0,numeroDeTextosEncontrados=0;
+    private String NameOfFileToWrite="",lastPathOfFileSaved = "";
     public static TextView textView1;
     static final int COSTUM_DIALOG_ID=0;
     long TimeStart,TimeTake;
     Date date=new Date();
     TextView textFolder;
     ListView dialog_ListView;
-    int numeroDeTextosEncontrados=0;
     MainActivity main;
     private List<String> fileList=new ArrayList<>();
     private String[] textosRecebidos=new String[1];
@@ -65,9 +63,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
         main=this;
 
-        //TODO : corrigir livros com apenas 1 capitulo
-        //TODO : ao dar erro/sair dar backup do texto com data e milis
-        //TODO : dar save ao ficheiro atual
+        //TODO : corrigir livros com apenas 1 capitulo, neste caso jud,123joa
+        //TODO : ao dar erro/sair dar backup do texto com data e milis, ver este exemplo
+        //https://stackoverflow.com/questions/7370981/how-to-catch-my-applications-crash-report
 
         loadBibleBooks();
         setUpInterface(); // mais clean (mas é opcional, podes meter como estava)
@@ -188,18 +186,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 textView.setText("");
                 t.clear();
                 textosRecebidos=new String[1];
-                int NumberOfThread=-1;
                 AssetManager assetManager = getApplicationContext().getAssets();
                 numeroDeTextosEncontrados=-1;
                 TimeStart = date.getTime();
                 for ( int i = 0; i < words.length; i++) {
+
+                  //Esta condição, testa se existe : ,se existe algo mais a seguir aos :
+                  //Testa se o texto antes dos : correspondente ao capitulo é mesmo int, e se existe algum versiculo
                     if (words[i].contains(":") && (words[i].indexOf(":")!=(words[i].length()-1)) &&
-                            (TryParseInt(words[i].substring(0,words[i].indexOf(":")))!=null) && (TryParseInt(words[i].substring(words[i].indexOf(":")+1)))!=null)  {
+                            (TryParseInt(words[i].substring(0,words[i].indexOf(":")))!=null) && (words[i].substring(words[i].indexOf(":")+1)!=null))  {
                         Log.d("Texto","Encontrei um");
                         String texto=words[i-1]+" "+words[i];
-
-                        //TODO: suspostamente este codigo so vai mostrar os textos que ainda nao existem, mas corrigir possiveis erros
-
                         Log.d("Texto", "Texto é " + texto);
                         numeroDeTextosEncontrados++;
                         TextAnalizer text = new TextAnalizer(texto, getApplicationContext(), bibleBooks, main,numeroDeTextosEncontrados);
@@ -441,7 +438,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void readFromFile(String filename) {
         Log.d("Ok","Starting void, with the file "+ filename);
         try {
-            //InputStream inputStream = context.openFileInput(filename);
             BufferedReader in = new BufferedReader(new FileReader(new File(filename)));
             String teste;
             StringBuilder stringBuilder = new StringBuilder();
@@ -483,13 +479,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             String message=(String)text.obj;
             int numeroDoTexto=text.arg1;
             textosRecebidos[numeroDoTexto]=message;
-            //TODO: sincronizar o append para isso talvez so acrescentar aqueles que mudaram
-            //Reagir de maneiras diferentes visto que depois do Android 7
-            /*if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                textView1.append(Html.fromHtml(message,Html.FROM_HTML_MODE_LEGACY));
-            } else {
-                textView1.append(Html.fromHtml(message));
-            }*/
             CheckThreads();
         }
     };
@@ -515,10 +504,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
             date=new Date();
-            TimeTake=date.getTime()-TimeStart;
-            //TimeTake = System.nanoTime() - TimeStart;
+            TimeTake=date.getTime()-TimeStart;            
             Log.d("Texto","Demorei "+TimeTake+ " Atualmente "+ date.getTime());
-
         }
     }
 }
