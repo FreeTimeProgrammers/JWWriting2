@@ -1,4 +1,6 @@
-public class ErrorHandler extends Application
+import android.app.Application;
+
+public class Error extends Application
 {
   public void onCreate ()
   {

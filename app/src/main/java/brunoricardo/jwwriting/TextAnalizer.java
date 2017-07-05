@@ -20,7 +20,7 @@ public class TextAnalizer extends Thread {
 
     //Variaveis contem texto recebido e livro,cap. e vers.
     String textoRecebido,livroRecebido,Capitulo,Versiculo,textoOriginalVersiculo;
-    private List<int> TodosOsVersiculos=new ArrayList<>();
+    private List<Integer> TodosOsVersiculos=new ArrayList<>();
     private List<String> VersiculosAEncontrar = new ArrayList<>();
 
     //Variavel contem todos os livros
@@ -56,7 +56,7 @@ public class TextAnalizer extends Thread {
              Capitulo=textoRecebido.substring(textoRecebido.indexOf(" "),textoRecebido.indexOf(":")).trim();
 
             textoOriginalVersiculo=textoRecebido.substring(textoRecebido.indexOf(":")+1);
-
+            Versiculo=textoOriginalVersiculo;
             Log.d("Texto",livroRecebido+" "+Capitulo+" "+Versiculo);
 
 
@@ -70,11 +70,13 @@ public class TextAnalizer extends Thread {
                         versiculo.replace(",","");
                     }
                 }
+                Log.d("Texto","Contain , ");
             }else {
               //Se não tiver virgulas é provavel que seja apenas um versiculo
               apenasUmVersiculo=true;
             }
             }catch (Exception e) {
+                Log.d("Texto","Erro ao ,");
               algumErro=true;
             }
 
@@ -89,26 +91,33 @@ public class TextAnalizer extends Thread {
                 for (int i=PrimeiroVers;i<=UltimoVers;i++){
                     VersiculosAEncontrar.add(i+"");
                 }
-              }else {
-                //Se não tiver hífen é provavel que seja apenas um versiculo
-                apenasUmVersiculo=true;
+                Log.d("Texto","Contain -");
               }
             }catch (Exception e) {
+                Log.d("Texto","Erro ao -");
                 algumErro=true;
            }
               //Faço as validações anteriores e caso se confirme que apenas tem um versiculo, faço validação
-              if (apenasUmVersiculo){
+            try {
+                Log.d("Texto","Apenas 1 vers");
+                if (apenasUmVersiculo){
+                    TodosOsVersiculos.add(Integer.parseInt(textoRecebido.substring(textoRecebido.indexOf(":")+1)));
+                }
+            }catch (Exception e){
+                algumErro=true;
+            }
 
-              }
 
 
               //Receber os versiculos em String por para Int e ordená-los
               try {
+                  Log.d("Texto","String to Int");
                 for (int l=0;l<=VersiculosAEncontrar.size()-1;l++){
-                  TodosOsVersiculos.add(VersiculosAEncontrar.get(l));
+                  TodosOsVersiculos.add(Integer.parseInt(VersiculosAEncontrar.get(l)));
                 }
                 Collections.sort(TodosOsVersiculos);
               }catch (Exception e){
+                  Log.d("Texto","Erro ao ordenar");
                 algumErro=true;
               }
 
@@ -121,7 +130,6 @@ public class TextAnalizer extends Thread {
                     Log.d("Ok", "Livro existe é " + livro);
                  }
             }
-
             if (livroExiste && !algumErro) {
                 AssetManager assetManager = context.getAssets();
             //Ficar com o nome correto do arquivo
@@ -143,9 +151,9 @@ public class TextAnalizer extends Thread {
 
                 String Conteudo="";
                 String textoDoFicheiro="";
-
+                Log.d("Texto","Arraylist contem "+TodosOsVersiculos);
                 Log.d("Texto","Versiculo é "+ Versiculo);
-                int VersiculoParaAcabar=Integer.parseInt(Versiculo)+1;
+                int VersiculoParaAcabar;
                 boolean PararCiclo=false;
                 boolean ContinuarALer=false;
                 //// TODO: É preciso corrigir o ciclo para aceitar mais de um versiculo
@@ -154,7 +162,7 @@ public class TextAnalizer extends Thread {
 
                     //Buscar o versiculo atual que deve procurar
                       Versiculo=TodosOsVersiculos.get(0)+"";
-                      VersiculoParaAcabar=Versiculo+1;
+                      VersiculoParaAcabar=Integer.parseInt(Versiculo)+1;
 
                     //Começar a ler o ficheiro
                     if (Conteudo.contains("<span id=\"chapter"+Capitulo+"_verse"+Versiculo+"\">")){

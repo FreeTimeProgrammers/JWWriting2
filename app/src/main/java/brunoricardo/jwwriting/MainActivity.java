@@ -1,15 +1,19 @@
 package brunoricardo.jwwriting;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Color;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.Html;
@@ -203,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                   //Esta condição, testa se existe : ,se existe algo mais a seguir aos :
                   //Testa se o texto antes dos : correspondente ao capitulo é mesmo int, e se existe algum versiculo
                     if (words[i].contains(":") && (words[i].indexOf(":")!=(words[i].length()-1)) &&
-                            (TryParseInt(words[i].substring(0,words[i].indexOf(":")))!=null) && (words[i].substring(words[i].indexOf(":")+1)!=null))  {
+                            (TryParseInt(words[i].substring(0,words[i].indexOf(":")))!=null))  {
                         Log.d("Texto","Encontrei um");
                         String texto=words[i-1]+" "+words[i];
                         Log.d("Texto", "Texto é " + texto);
@@ -328,7 +332,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             Log.d("Ok","Folder created ");
                         }
                     }
-                    writeToFile();
+                    if (isStoragePermissionGranted()){
+                        writeToFile();
+                    }
+
                 }
             });
             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -523,17 +530,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     if (Build.VERSION.SDK_INT >= 23) {
         if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED) {
-            Log.v(TAG,"Permission is granted");
+            Log.v("Permission","Permission is granted");
             return true;
         } else {
 
-            Log.v(TAG,"Permission is revoked");
+            Log.v("Permission","Permission is revoked");
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
             return false;
         }
     }
     else { //permission is automatically granted on sdk<23 upon installation
-        Log.v(TAG,"Permission is granted");
+        Log.v("Permission","Permission is granted");
         return true;
     }
 }
