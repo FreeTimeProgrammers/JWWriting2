@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -61,11 +62,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String[] textosRecebidos=new String[1];
     private List<Thread> t =new ArrayList<>();
     File curFolder,root;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         main=this;
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(Thread paramThread, Throwable paramThrowable) {
+                Log.e("Error"+Thread.currentThread().getStackTrace()[2],paramThrowable.getLocalizedMessage());
+                Log.d("Texto","Entrei aqui antes de fechar");
+                if (isStoragePermissionGranted()){
+                    try {
+                        Calendar teste=Calendar.getInstance();
+                        String fileName="copiaSeguranca_"+teste.get(Calendar.DATE)+"_"+teste.get(Calendar.HOUR_OF_DAY)+"_"+teste.get(Calendar.MINUTE)+"_"+teste.get(Calendar.MILLISECOND)+"";
+                        Log.d("Texto","NomeFicheiro="+fileName);
+                        String tmpPath=Environment.getExternalStorageDirectory().getPath()+"/jwwriting/"+fileName.trim()+".docx";
+                        File file = new File(tmpPath);
+                        if (!file.exists()) {
+                            if (file.createNewFile()) {
+                                Log.d("Ok", "Empty file created");
+                            }
+                        }
+                        String textoParaGravar = ((EditText) findViewById(R.id.editText4)).getText().toString();
+                        FileOutputStream fOut = new FileOutputStream(tmpPath, false);
+                        OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+                        myOutWriter.append(textoParaGravar);
+                        myOutWriter.close();
+                        fOut.flush();
+                        fOut.close();
+                        Toast.makeText(getApplicationContext(),"Erro no programa - cópia de segurança criada",Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Toast.makeText(getApplicationContext(),"Erro no programa - não foi possível criar cópia de segurança", Toast.LENGTH_SHORT).show();
+                    }
+
+                }
+
+            }
+        });
 
         //TODO : corrigir livros com apenas 1 capitulo, neste caso jud,123joa
         //TODO : ao dar erro/sair dar backup do texto com data e milis, ver seguintes links:
