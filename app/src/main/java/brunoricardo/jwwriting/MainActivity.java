@@ -21,6 +21,8 @@ import android.text.InputType;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.DragEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -32,15 +34,21 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +60,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private int autosaveCount = 0,numeroDeTextosEncontrados=0;
     private String NameOfFileToWrite="",lastPathOfFileSaved = "";
     public static TextView textView1;
+    public EditText editText;
+    public LinearLayout opcoes;
     static final int COSTUM_DIALOG_ID=0;
+    public int DragPrimeiroY,DragUltimoY,DragPrimeiroX,DragUltimoX,TextViewX;
     long TimeStart,TimeTake;
     Date date=new Date();
     TextView textFolder;
@@ -101,6 +112,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+        //TODO: fazer menu de opcoes, já está a funcionar o metodo de abrir e fechar menu
+
+        //TODO: poder movimentar a textView
+
         //TODO : corrigir livros com apenas 1 capitulo, neste caso jud,123joa
         //TODO : ao dar erro/sair dar backup do texto com data e milis, ver seguintes links:
         //https://stackoverflow.com/questions/7370981/how-to-catch-my-applications-crash-report
@@ -125,6 +140,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        opcoes=(LinearLayout) findViewById(R.id.linearLayout);
+
+        TextView textView= (TextView)findViewById(R.id.textView5);
+
+
+        editText= (EditText) findViewById(R.id.editText4);
+
+
+        //Estes dois objetos vao estar encarregues de lidar com o menu de opcoes
+        textView.setOnTouchListener(new DragHandler());
+        editText.setOnTouchListener(new DragHandler());
+
     }
 
     private void loadBibleBooks() {
@@ -578,4 +606,59 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 }
+
+
+    //Serve para lidar com os eventos de Drag
+    private class DragHandler implements View.OnTouchListener {
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            switch (event.getActionMasked()){
+                case MotionEvent.ACTION_DOWN:
+                    TextViewX=editText.getWidth();
+                    DragPrimeiroY=(int)event.getY();
+                    DragPrimeiroX=(int)event.getX();
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    DragUltimoX=(int)event.getX();
+                    Log.d("Ola","PrimeiroX="+DragPrimeiroX+" "+TextViewX);
+                    if (TextViewX-DragPrimeiroX<=10 && TextViewX-DragPrimeiroX>=0|| DragPrimeiroX-TextViewX<=10 && DragPrimeiroX-TextViewX>=0){
+
+
+                        LinearLayout test=(LinearLayout) findViewById(R.id.linearLayout);
+                        int FullWidth=test.getWidth();
+                        float percentagem=(DragUltimoX*100)/FullWidth;
+                        percentagem/=100;
+
+                        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+                        p.weight = percentagem;
+                        editText.setLayoutParams(p);
+                        TextView test1=(TextView) findViewById(R.id.textView5);
+                        p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+                        p.weight=1-percentagem;
+                        test1.setLayoutParams(p);
+
+
+                    }
+                    break;
+                case MotionEvent.ACTION_UP:
+                    boolean DragVertical=false;
+                    DragUltimoY=(int)event.getY();
+                    DragUltimoX=(int)event.getX();
+
+                    //Se isto acontecer significa que foi feito drag para baixo
+                    if (DragUltimoY>DragPrimeiroY && DragPrimeiroY<=50){
+                        opcoes.setVisibility(View.VISIBLE);
+                         DragVertical=true;
+                    //Se isto acontecer foi feito drag para cima
+                    }else if (DragUltimoY<DragPrimeiroY && DragPrimeiroX<=100){
+                        opcoes.setVisibility(View.GONE);
+                        DragVertical=true;
+                    }
+
+                    break;
+            }
+            return false;
+        }
+    };
 }
