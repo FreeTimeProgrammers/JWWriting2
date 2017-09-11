@@ -8,55 +8,96 @@
     android:focusable="true"
     android:focusableInTouchMode="true"
     tools:context="brunoricardo.jwwriting.MainActivity">
+
+    <!--Trata do design do Menu de Opcoes-->
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="60dip"
-        android:background="@drawable/border_textview"
+        android:padding="15dp"
+        android:background="@drawable/menu"
         android:clickable="true"
-        android:gravity="top"
+        android:gravity="center"
         android:orientation="horizontal"
         android:visibility="visible">
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Vai ser menu de opcoes"
+        android:text="@string/menu"
         android:textSize="20sp"
         android:background="@color/colorPrimary"
-        />
+            />
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Spinner
+            android:id="@+id/tamanhoFonte"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+             />
+
     </LinearLayout>
 
 
+
+    <!--Trata design do Texto-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/linearLayout">
-    <EditText
-        android:id="@+id/editText4"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
         android:background="@android:color/white"
-        android:inputType="textMultiLine|textCapSentences"
-        android:gravity="start"
-        android:padding="10dp"
-        android:layout_weight="0.7"
-        android:textAlignment="textStart"
-        android:textColor="@android:color/black"
-         />
+        android:layout_below="@+id/linearLayout">
 
-        <TextView
-            android:id="@+id/textView5"
+        <EditText
+            android:id="@+id/editText4"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="0.7"
+            android:background="@android:color/white"
+            android:gravity="start"
+            android:textSize="10sp"
+            android:inputType="textMultiLine|textCapSentences"
+            android:padding="10dp"
+            android:textAlignment="textStart"
+            android:textColor="@android:color/black" />
+        <ImageButton
+            android:id="@+id/maxButton"
+            android:layout_width="20dp"
+            android:layout_height="15dp"
+            android:layout_gravity="end"
+            android:adjustViewBounds="true"
+            android:padding="100dp"
+            android:scaleType="fitCenter" />
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="0.3"
-            android:padding="10dp"
+            android:id="@+id/barraLateral"
             android:background="@drawable/border_textview"
-            android:lineSpacingMultiplier="1.2"
-            android:maxWidth="50dp"
-            android:scrollbarTrackVertical="@android:color/black"
-            android:scrollbars="vertical"
-            android:textColor="@android:color/black"
-            android:textSize="14sp" />
+            android:orientation="vertical">
+
+            <ImageButton
+                android:id="@+id/minimizeButton"
+                android:layout_width="20dp"
+                android:layout_height="15dp"
+                android:layout_gravity="end"
+                 />
+
+            <TextView
+                android:id="@+id/textView5"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/border_textview"
+                android:lineSpacingMultiplier="1.2"
+                android:maxWidth="50dp"
+                android:padding="10dp"
+                android:scrollbarTrackVertical="@android:color/black"
+                android:scrollbars="vertical"
+                android:textColor="@android:color/black"
+                android:textSize="14sp" />
+        </LinearLayout>
     </LinearLayout>
 
 

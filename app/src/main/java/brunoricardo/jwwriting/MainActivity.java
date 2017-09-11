@@ -34,9 +34,11 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -142,16 +144,59 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
 
         opcoes=(LinearLayout) findViewById(R.id.linearLayout);
-
         TextView textView= (TextView)findViewById(R.id.textView5);
-
-
         editText= (EditText) findViewById(R.id.editText4);
+        ImageButton minimize= (ImageButton) findViewById(R.id.minimizeButton);
+        minimize.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinearLayout barraLateral= (LinearLayout) findViewById(R.id.barraLateral);
+                barraLateral.setVisibility(View.GONE);
+                ImageButton maximize= (ImageButton) findViewById(R.id.maxButton);
+                maximize.setVisibility(View.VISIBLE);
+            }
+        });
 
-
+        final ImageButton maximize= (ImageButton) findViewById(R.id.maxButton);
+        maximize.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                maximize.setVisibility(View.GONE);
+                LinearLayout barraLateral= (LinearLayout) findViewById(R.id.barraLateral);
+                barraLateral.setVisibility(View.VISIBLE);
+            }
+        });
         //Estes dois objetos vao estar encarregues de lidar com o menu de opcoes
         textView.setOnTouchListener(new DragHandler());
         editText.setOnTouchListener(new DragHandler());
+
+
+        final Spinner tamanhoFonte = (Spinner) findViewById(R.id.tamanhoFonte);
+        ArrayList<String> tamanhoDeFontePossiveis = new ArrayList<String>();
+        for (int i=2;i<=20;i++){
+            tamanhoDeFontePossiveis.add(i+"");
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.spinner_item, tamanhoDeFontePossiveis);
+        adapter.setDropDownViewResource(R.layout.spinner_item);
+
+        //tamanhoFonte.setPrompt("Escolhe o tamanho da fonte");
+        tamanhoFonte.setAdapter(adapter);
+        tamanhoFonte.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String teste=parent.getItemAtPosition(position).toString();
+                Log.d("Spinner","Texto="+teste);
+                //tamanhoFonte.setSelection();
+                float t=Float.parseFloat(teste);
+                editText.setTextSize(t);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
     }
 
@@ -613,6 +658,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
+            Log.d("Touch",event+"");
             switch (event.getActionMasked()){
                 case MotionEvent.ACTION_DOWN:
                     TextViewX=editText.getWidth();
@@ -621,8 +667,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     break;
                 case MotionEvent.ACTION_MOVE:
                     DragUltimoX=(int)event.getX();
+                    int Range=20;
                     Log.d("Ola","PrimeiroX="+DragPrimeiroX+" "+TextViewX);
-                    if (TextViewX-DragPrimeiroX<=10 && TextViewX-DragPrimeiroX>=0|| DragPrimeiroX-TextViewX<=10 && DragPrimeiroX-TextViewX>=0){
+                    if (TextViewX-DragPrimeiroX<=Range && TextViewX-DragPrimeiroX>=0|| DragPrimeiroX-TextViewX<=Range && DragPrimeiroX-TextViewX>=0){
 
 
                         LinearLayout test=(LinearLayout) findViewById(R.id.linearLayout);
@@ -633,27 +680,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
                         p.weight = percentagem;
                         editText.setLayoutParams(p);
-                        TextView test1=(TextView) findViewById(R.id.textView5);
+                        LinearLayout test1=(LinearLayout) findViewById(R.id.barraLateral);
                         p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
                         p.weight=1-percentagem;
+                        test1.setBackgroundResource(R.drawable.onselect);
                         test1.setLayoutParams(p);
 
 
                     }
                     break;
                 case MotionEvent.ACTION_UP:
-                    boolean DragVertical=false;
+
                     DragUltimoY=(int)event.getY();
                     DragUltimoX=(int)event.getX();
-
+                    LinearLayout test1=(LinearLayout) findViewById(R.id.barraLateral);
+                    test1.setBackgroundResource(R.drawable.border_textview);
                     //Se isto acontecer significa que foi feito drag para baixo
                     if (DragUltimoY>DragPrimeiroY && DragPrimeiroY<=50){
                         opcoes.setVisibility(View.VISIBLE);
-                         DragVertical=true;
+
                     //Se isto acontecer foi feito drag para cima
-                    }else if (DragUltimoY<DragPrimeiroY && DragPrimeiroX<=100){
+                    }else if (DragUltimoY<DragPrimeiroY && DragPrimeiroY<=100){
                         opcoes.setVisibility(View.GONE);
-                        DragVertical=true;
+
                     }
 
                     break;
@@ -661,4 +710,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return false;
         }
     };
+
+    private class EditTextScroll implements View.OnScrollChangeListener{
+        @Override
+        public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+
+        }
+    }
+
 }
